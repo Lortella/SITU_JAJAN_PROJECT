@@ -1,7 +1,7 @@
 import msvcrt  # Microsoft Visual C Runtime buat deteksi keypress di timer
 import os  # Operating System
 import time  # Time Module buat timer pas bayar
-from db import get_connection  # Database Connection dari file db.py
+from database.db import get_connection  # Database Connection dari file db.py
 
 # Clear screen (Windows / Linux / Mac). FYI bisa cuman os.system("clear") di Linux / Mac dan os.system("cls") di Windows
 os.system("cls" if os.name == "nt" else "clear")
