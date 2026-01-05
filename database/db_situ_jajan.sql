@@ -1,313 +1,176 @@
--- phpMyAdmin SQL Dump
--- version 5.2.2
--- https://www.phpmyadmin.net/
---
--- Host: localhost:3306
--- Generation Time: Jan 04, 2026 at 12:59 PM
--- Server version: 8.4.3
--- PHP Version: 8.3.28
+/* =========================================================
+   DROP TABLE
+   ========================================================= */
+DROP TABLE IF EXISTS riwayat_transaksi;
+DROP TABLE IF EXISTS pembayaran;
+DROP TABLE IF EXISTS tagihan;
+DROP TABLE IF EXISTS detail_pesanan;
+DROP TABLE IF EXISTS pesanan;
+DROP TABLE IF EXISTS menu;
+DROP TABLE IF EXISTS kantin;
+DROP TABLE IF EXISTS saldo;
+DROP TABLE IF EXISTS siswa;
+DROP TABLE IF EXISTS orang_tua;
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+
+/* =========================================================
+   CREATE TABLE
+   ========================================================= */
+
+CREATE TABLE orang_tua (
+    ID_Ortu INT AUTO_INCREMENT PRIMARY KEY,
+    Nama VARCHAR(100),
+    No_HP VARCHAR(20),
+    Password VARCHAR(100)
+);
+
+CREATE TABLE siswa (
+    NIS VARCHAR(20) PRIMARY KEY,
+    Nama VARCHAR(100),
+    Kelas VARCHAR(20),
+    ID_Ortu INT,
+    FOREIGN KEY (ID_Ortu) REFERENCES orang_tua(ID_Ortu)
+);
+
+CREATE TABLE saldo (
+    ID_Saldo INT AUTO_INCREMENT PRIMARY KEY,
+    Saldo DECIMAL(12,2),
+    Created_At DATETIME,
+    Updated_At DATETIME,
+    ID_Ortu INT UNIQUE,
+    FOREIGN KEY (ID_Ortu) REFERENCES orang_tua(ID_Ortu)
+);
+
+CREATE TABLE kantin (
+    ID_Kantin INT AUTO_INCREMENT PRIMARY KEY,
+    Nama_Petugas VARCHAR(100),
+    Kategori VARCHAR(50)
+);
+
+CREATE TABLE menu (
+    ID_Menu INT AUTO_INCREMENT PRIMARY KEY,
+    Nama_Menu VARCHAR(100),
+    Harga DECIMAL(10,2),
+    Stok INT,
+    Kategori VARCHAR(50),
+    ID_Kantin INT,
+    FOREIGN KEY (ID_Kantin) REFERENCES kantin(ID_Kantin)
+);
+
+CREATE TABLE pesanan (
+    ID_Pesanan INT AUTO_INCREMENT PRIMARY KEY,
+    Total_Pesanan DECIMAL(12,2),
+    Tanggal_Pesanan DATETIME,
+    NIS VARCHAR(20),
+    FOREIGN KEY (NIS) REFERENCES siswa(NIS)
+);
+
+CREATE TABLE detail_pesanan (
+    ID_Detail INT AUTO_INCREMENT PRIMARY KEY,
+    Jumlah INT,
+    Harga_Satuan DECIMAL(10,2),
+    Subtotal DECIMAL(12,2),
+    ID_Menu INT,
+    ID_Pesanan INT,
+    FOREIGN KEY (ID_Menu) REFERENCES menu(ID_Menu),
+    FOREIGN KEY (ID_Pesanan) REFERENCES pesanan(ID_Pesanan)
+);
+
+CREATE TABLE tagihan (
+    ID_Tagihan INT AUTO_INCREMENT PRIMARY KEY,
+    Tanggal_Tagihan DATETIME,
+    Total_Tagihan DECIMAL(12,2),
+    Status_Pembayaran VARCHAR(30),
+    ID_Pesanan INT,
+    FOREIGN KEY (ID_Pesanan) REFERENCES pesanan(ID_Pesanan)
+);
+
+CREATE TABLE pembayaran (
+    ID_Pembayaran INT AUTO_INCREMENT PRIMARY KEY,
+    Tanggal_Pembayaran DATETIME,
+    Metode_Pembayaran VARCHAR(50),
+    Total_Pembayaran DECIMAL(12,2),
+    Status VARCHAR(30),
+    ID_Tagihan INT,
+    ID_Ortu INT,
+    FOREIGN KEY (ID_Tagihan) REFERENCES tagihan(ID_Tagihan),
+    FOREIGN KEY (ID_Ortu) REFERENCES orang_tua(ID_Ortu)
+);
+
+CREATE TABLE riwayat_transaksi (
+    ID_Riwayat INT AUTO_INCREMENT PRIMARY KEY,
+    Jenis_Transaksi VARCHAR(30),
+    Tanggal DATETIME,
+    Keterangan VARCHAR(255),
+    Nominal DECIMAL(12,2),
+    ID_Ortu INT,
+    FOREIGN KEY (ID_Ortu) REFERENCES orang_tua(ID_Ortu)
+);
 
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+/* =========================================================
+   INSERT DATA
+   ========================================================= */
 
---
--- Database: `db_situ_jajan`
---
+INSERT INTO orang_tua (Nama, No_HP, Password) VALUES
+('Budi Santoso', '0811111111', '123'),
+('Ani Wulandari', '0822222222', '123'),
+('Rizky Pratama', '0833333333', '123'),
+('Siti Aminah', '0844444444', '123'),
+('Dedi Kurniawan', '0855555555', '123');
 
--- --------------------------------------------------------
+INSERT INTO siswa VALUES
+('S001', 'Andi', '5A', 1),
+('S002', 'Bela', '5B', 2),
+('S003', 'Cahya', '6A', 3),
+('S004', 'Dina', '6B', 4),
+('S005', 'Eko', '4A', 5);
 
---
--- Table structure for table `kantin`
---
+INSERT INTO saldo (Saldo, Created_At, Updated_At, ID_Ortu) VALUES
+(50000, NOW(), NOW(), 1),
+(75000, NOW(), NOW(), 2),
+(60000, NOW(), NOW(), 3),
+(90000, NOW(), NOW(), 4),
+(40000, NOW(), NOW(), 5);
 
-CREATE TABLE `kantin` (
-  `ID_Kantin` int NOT NULL,
-  `Nama_Petugas` varchar(100) NOT NULL,
-  `Kategori` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+INSERT INTO kantin (Nama_Petugas, Kategori) VALUES
+('Kantin Bu Rina', 'Makanan'),
+('Kantin Pak Agus', 'Minuman');
 
---
--- Dumping data for table `kantin`
---
+INSERT INTO menu (Nama_Menu, Harga, Stok, Kategori, ID_Kantin) VALUES
+('Nasi Goreng', 15000, 50, 'Makanan', 1),
+('Mie Ayam', 12000, 40, 'Makanan', 1),
+('Es Teh', 3000, 100, 'Minuman', 2),
+('Jus Jeruk', 7000, 60, 'Minuman', 2);
 
-INSERT INTO `kantin` (`ID_Kantin`, `Nama_Petugas`, `Kategori`) VALUES
-(1, 'Pak Udin', 'Makanan'),
-(2, 'Bu Sari', 'Minuman'),
-(3, 'Pak Joko', 'Snack');
+INSERT INTO pesanan (Total_Pesanan, Tanggal_Pesanan, NIS) VALUES
+(18000, NOW(), 'S001'),
+(15000, NOW(), 'S002'),
+(22000, NOW(), 'S001'),
+(7000,  NOW(), 'S004');
 
--- --------------------------------------------------------
+INSERT INTO detail_pesanan (Jumlah, Harga_Satuan, Subtotal, ID_Menu, ID_Pesanan) VALUES
+(1, 15000, 15000, 1, 1),
+(1, 3000, 3000, 3, 1),
+(1, 12000, 12000, 2, 2),
+(1, 3000, 3000, 3, 2),
+(1, 15000, 15000, 1, 3),
+(1, 7000, 7000, 4, 4);
 
---
--- Table structure for table `menu`
---
+INSERT INTO tagihan (Tanggal_Tagihan, Total_Tagihan, Status_Pembayaran, ID_Pesanan) VALUES
+(NOW(), 18000, 'LUNAS', 1),
+(NOW(), 15000, 'LUNAS', 2),
+(NOW(), 22000, 'LUNAS', 3),
+(NOW(), 7000,  'LUNAS', 4);
 
-CREATE TABLE `menu` (
-  `ID_Menu` int NOT NULL,
-  `Nama_Menu` varchar(100) NOT NULL,
-  `Harga` decimal(18,2) NOT NULL,
-  `Stok` int NOT NULL,
-  `Kategori` varchar(50) NOT NULL,
-  `ID_Kantin` int NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+INSERT INTO pembayaran (Tanggal_Pembayaran, Metode_Pembayaran, Total_Pembayaran, Status, ID_Tagihan, ID_Ortu) VALUES
+(NOW(), 'Saldo', 18000, 'BERHASIL', 1, 1),
+(NOW(), 'Saldo', 15000, 'BERHASIL', 2, 2),
+(NOW(), 'Saldo', 22000, 'BERHASIL', 3, 1),
+(NOW(), 'Saldo', 7000,  'BERHASIL', 4, 4);
 
---
--- Dumping data for table `menu`
---
-
-INSERT INTO `menu` (`ID_Menu`, `Nama_Menu`, `Harga`, `Stok`, `Kategori`, `ID_Kantin`) VALUES
-(1, 'Nasi Goreng', 15000.00, 20, 'Makanan', 1),
-(2, 'Es Teh', 5000.00, 30, 'Minuman', 2),
-(3, 'Roti', 7000.00, 25, 'Snack', 3);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `orang_tua`
---
-
-CREATE TABLE `orang_tua` (
-  `ID_Ortu` int NOT NULL,
-  `Nama` varchar(100) NOT NULL,
-  `No_HP` varchar(20) NOT NULL,
-  `Password` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `orang_tua`
---
-
-INSERT INTO `orang_tua` (`ID_Ortu`, `Nama`, `No_HP`, `Password`) VALUES
-(1, 'Budi Santoso', '0811111111', '12345'),
-(2, 'Siti Aminah', '0822222222', '12345'),
-(3, 'Andi Wijaya', '0833333333', '12345');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pembayaran`
---
-
-CREATE TABLE `pembayaran` (
-  `ID_Pembayaran` int NOT NULL,
-  `Tanggal` datetime DEFAULT CURRENT_TIMESTAMP,
-  `Status` varchar(20) NOT NULL,
-  `Metode_Pembayaran` varchar(20) NOT NULL,
-  `Total_Pembayaran` decimal(18,2) NOT NULL,
-  `NIS` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `pembayaran`
---
-
-INSERT INTO `pembayaran` (`ID_Pembayaran`, `Tanggal`, `Status`, `Metode_Pembayaran`, `Total_Pembayaran`, `NIS`) VALUES
-(1, '2026-01-04 12:20:04', 'Sukses', 'Saldo', 15000.00, 'S001'),
-(2, '2026-01-04 12:20:04', 'Sukses', 'Saldo', 5000.00, 'S002'),
-(3, '2026-01-04 12:20:04', 'Sukses', 'Saldo', 7000.00, 'S003');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pesanan`
---
-
-CREATE TABLE `pesanan` (
-  `pesanan_id` bigint UNSIGNED NOT NULL,
-  `ID_Pembayaran` int NOT NULL,
-  `ID_Menu` int NOT NULL,
-  `Jumlah` int NOT NULL,
-  `Subtotal` decimal(18,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `pesanan`
---
-
-INSERT INTO `pesanan` (`pesanan_id`, `ID_Pembayaran`, `ID_Menu`, `Jumlah`, `Subtotal`) VALUES
-(1, 1, 1, 1, 15000.00),
-(2, 2, 2, 1, 5000.00),
-(3, 3, 3, 1, 7000.00);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `saldo`
---
-
-CREATE TABLE `saldo` (
-  `ID_Saldo` int NOT NULL,
-  `ID_Ortu` int NOT NULL,
-  `Saldo` decimal(18,2) NOT NULL DEFAULT '0.00',
-  `Created_At` datetime DEFAULT CURRENT_TIMESTAMP,
-  `Updated_At` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `saldo`
---
-
-INSERT INTO `saldo` (`ID_Saldo`, `ID_Ortu`, `Saldo`, `Created_At`, `Updated_At`) VALUES
-(1, 1, 50005.00, '2026-01-04 12:20:04', '2026-01-04 19:49:33'),
-(2, 2, 75000.00, '2026-01-04 12:20:04', '2026-01-04 12:20:04'),
-(3, 3, 86000.00, '2026-01-04 12:20:04', '2026-01-04 15:03:22');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `siswa`
---
-
-CREATE TABLE `siswa` (
-  `NIS` varchar(20) NOT NULL,
-  `Nama` varchar(100) NOT NULL,
-  `Kelas` varchar(10) NOT NULL,
-  `ID_Ortu` int NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `siswa`
---
-
-INSERT INTO `siswa` (`NIS`, `Nama`, `Kelas`, `ID_Ortu`) VALUES
-('S001', 'Rafi', '5A', 1),
-('S002', 'Nina', '6B', 2),
-('S003', 'Doni', '4C', 3);
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `kantin`
---
-ALTER TABLE `kantin`
-  ADD PRIMARY KEY (`ID_Kantin`);
-
---
--- Indexes for table `menu`
---
-ALTER TABLE `menu`
-  ADD PRIMARY KEY (`ID_Menu`),
-  ADD KEY `fk_menu_kantin` (`ID_Kantin`);
-
---
--- Indexes for table `orang_tua`
---
-ALTER TABLE `orang_tua`
-  ADD PRIMARY KEY (`ID_Ortu`);
-
---
--- Indexes for table `pembayaran`
---
-ALTER TABLE `pembayaran`
-  ADD PRIMARY KEY (`ID_Pembayaran`),
-  ADD KEY `fk_pembayaran_siswa` (`NIS`);
-
---
--- Indexes for table `pesanan`
---
-ALTER TABLE `pesanan`
-  ADD PRIMARY KEY (`pesanan_id`),
-  ADD KEY `fk_pesanan_pembayaran` (`ID_Pembayaran`),
-  ADD KEY `fk_pesanan_menu` (`ID_Menu`);
-
---
--- Indexes for table `saldo`
---
-ALTER TABLE `saldo`
-  ADD PRIMARY KEY (`ID_Saldo`),
-  ADD UNIQUE KEY `ID_Ortu` (`ID_Ortu`);
-
---
--- Indexes for table `siswa`
---
-ALTER TABLE `siswa`
-  ADD PRIMARY KEY (`NIS`),
-  ADD KEY `fk_siswa_ortu` (`ID_Ortu`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `kantin`
---
-ALTER TABLE `kantin`
-  MODIFY `ID_Kantin` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `menu`
---
-ALTER TABLE `menu`
-  MODIFY `ID_Menu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `orang_tua`
---
-ALTER TABLE `orang_tua`
-  MODIFY `ID_Ortu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `pembayaran`
---
-ALTER TABLE `pembayaran`
-  MODIFY `ID_Pembayaran` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `pesanan`
---
-ALTER TABLE `pesanan`
-  MODIFY `pesanan_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `saldo`
---
-ALTER TABLE `saldo`
-  MODIFY `ID_Saldo` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `menu`
---
-ALTER TABLE `menu`
-  ADD CONSTRAINT `fk_menu_kantin` FOREIGN KEY (`ID_Kantin`) REFERENCES `kantin` (`ID_Kantin`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `pembayaran`
---
-ALTER TABLE `pembayaran`
-  ADD CONSTRAINT `fk_pembayaran_siswa` FOREIGN KEY (`NIS`) REFERENCES `siswa` (`NIS`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `pesanan`
---
-ALTER TABLE `pesanan`
-  ADD CONSTRAINT `fk_pesanan_menu` FOREIGN KEY (`ID_Menu`) REFERENCES `menu` (`ID_Menu`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_pesanan_pembayaran` FOREIGN KEY (`ID_Pembayaran`) REFERENCES `pembayaran` (`ID_Pembayaran`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `saldo`
---
-ALTER TABLE `saldo`
-  ADD CONSTRAINT `fk_saldo_ortu` FOREIGN KEY (`ID_Ortu`) REFERENCES `orang_tua` (`ID_Ortu`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `siswa`
---
-ALTER TABLE `siswa`
-  ADD CONSTRAINT `fk_siswa_ortu` FOREIGN KEY (`ID_Ortu`) REFERENCES `orang_tua` (`ID_Ortu`) ON DELETE CASCADE ON UPDATE CASCADE;
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+INSERT INTO riwayat_transaksi (Jenis_Transaksi, Tanggal, Keterangan, Nominal, ID_Ortu) VALUES
+('PEMBAYARAN', NOW(), 'Pembelian jajan Andi', 18000, 1),
+('PEMBAYARAN', NOW(), 'Pembelian tambahan Andi', 22000, 1),
+('PEMBAYARAN', NOW(), 'Pembelian jajan Bela', 15000, 2),
+('PEMBAYARAN', NOW(), 'Pembelian jajan Dina', 7000, 4);
