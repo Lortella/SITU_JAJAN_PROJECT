@@ -3,8 +3,6 @@ import os
 import time
 from database.db import get_connection
 
-os.system("cls" if os.name == "nt" else "clear")
-
 conn = get_connection()
 cursor = conn.cursor()
 
@@ -193,9 +191,6 @@ if role == "ORTU":
             press_enter()
 
         # =====================
-        # SITU JAJAN
-        # =====================
-                # =====================
         # SITU JAJAN (KERANJANG + MERGE + STRUK)
         # =====================
         elif pilih == "3":
