@@ -42,22 +42,103 @@ def top_up(id_ortu, nis):
     clear()
     print("=== TOP UP SALDO ===")
     nominal = input("Masukkan Nominal: Rp ")
-    if not nominal.isdigit(): return
+    if not nominal.isdigit() or int(nominal) <= 0: 
+        print("Nominal tidak valid!")
+        time.sleep(1)
+        return
     nominal = int(nominal)
     
-    print("\nMetode:")
-    print("1. BCA Virtual Account")
-    print("2. GoPay / E-Wallet")
-    metode = input("Pilih: ")
+    print("\nPilih Kategori Pembayaran:")
+    print("1. Virtual Account (Bank)")
+    print("2. E-Wallet")
+    print("0. Batal")
+    kategori = input("Pilih: ")
     
-    va_number = "8800" + nis.replace("S","").zfill(4) if metode == "1" else "0812-9999-" + nis.replace("S","")
-    prov = "BCA VA" if metode == "1" else "E-Wallet"
+    provider_name = ""
+    nomor_bayar = ""
     
-    print(f"\nSilahkan transfer ke: {prov}")
-    print(f"No Tujuan: {va_number}")
+    # ----------------------------------------
+    # PILIHAN VIRTUAL ACCOUNT
+    # ----------------------------------------
+    if kategori == "1":
+        print("\nPilih Bank:")
+        print("1. BCA Virtual Account")
+        print("2. Mandiri Virtual Account")
+        print("3. BRI Virtual Account")
+        print("4. BNI Virtual Account")
+        pilih_bank = input("Pilih Bank: ")
+        
+        # Logic Prefix Nomor VA (Sesuai VB.NET)
+        clean_nis = nis.replace("S", "").replace("s", "").zfill(4)
+        
+        if pilih_bank == "1":
+            provider_name = "BCA Virtual Account"
+            nomor_bayar = "88000" + clean_nis
+        elif pilih_bank == "2":
+            provider_name = "Mandiri Virtual Account"
+            nomor_bayar = "89000" + clean_nis
+        elif pilih_bank == "3":
+            provider_name = "BRI Virtual Account"
+            nomor_bayar = "88880" + clean_nis
+        elif pilih_bank == "4":
+            provider_name = "BNI Virtual Account"
+            nomor_bayar = "988" + clean_nis
+        else:
+            print("Pilihan tidak valid")
+            time.sleep(1)
+            return
+
+    # ----------------------------------------
+    # PILIHAN E-WALLET
+    # ----------------------------------------
+    elif kategori == "2":
+        print("\nPilih E-Wallet:")
+        print("1. GoPay")
+        print("2. OVO")
+        print("3. DANA")
+        print("4. ShopeePay")
+        pilih_ewallet = input("Pilih E-Wallet: ")
+        
+        clean_nis = nis.replace("S", "").replace("s", "").zfill(4)
+        base_number = "0812-9999-" + clean_nis # Simulasi nomor HP
+        
+        if pilih_ewallet == "1":
+            provider_name = "GoPay"
+            nomor_bayar = base_number
+        elif pilih_ewallet == "2":
+            provider_name = "OVO"
+            nomor_bayar = base_number
+        elif pilih_ewallet == "3":
+            provider_name = "DANA"
+            nomor_bayar = base_number
+        elif pilih_ewallet == "4":
+            provider_name = "ShopeePay"
+            nomor_bayar = base_number
+        else:
+            print("Pilihan tidak valid")
+            time.sleep(1)
+            return
+            
+    elif kategori == "0":
+        return
+    else:
+        print("Pilihan tidak valid")
+        return
+
+    # ----------------------------------------
+    # KONFIRMASI PEMBAYARAN
+    # ----------------------------------------
+    clear()
+    print(f"=== KONFIRMASI TOP UP ===")
+    print(f"Metode   : {provider_name}")
+    print(f"No Bayar : {nomor_bayar}")
+    print(f"Nominal  : {format_rupiah(nominal)}")
+    print(f"Admin    : Rp 0")
     print(f"Total    : {format_rupiah(nominal)}")
+    print("-" * 30)
     
-    if countdown_timer(60): # 60 detik simulasi
+    # Panggil Timer Pembayaran
+    if countdown_timer(60): # 60 detik simulasi waktu bayar
         conn = get_connection()
         cursor = conn.cursor()
         
@@ -65,8 +146,9 @@ def top_up(id_ortu, nis):
         cursor.execute("UPDATE saldo SET Saldo = Saldo + %s WHERE ID_Ortu = %s", (nominal, id_ortu))
         
         # 2. Catat Riwayat
+        keterangan = f"TopUp via {provider_name}"
         cursor.execute("INSERT INTO riwayat_transaksi (Jenis_Transaksi, Tanggal, Keterangan, Nominal, ID_Ortu) VALUES ('TOPUP', NOW(), %s, %s, %s)",
-                       (f"TopUp via {prov}", nominal, id_ortu))
+                       (keterangan, nominal, id_ortu))
         
         conn.commit()
         conn.close()
