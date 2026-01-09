@@ -68,7 +68,7 @@ def top_up(id_ortu, nis):
         print("4. BNI Virtual Account")
         pilih_bank = input("Pilih Bank: ")
         
-        # Logic Prefix Nomor VA (Sesuai VB.NET)
+        # Logic Prefix Nomor VA
         clean_nis = nis.replace("S", "").replace("s", "").zfill(4)
         
         if pilih_bank == "1":

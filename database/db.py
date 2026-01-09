@@ -5,7 +5,7 @@ def get_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",         # Sesuaikan password database kamu
+            password="",         
             database="db_situ_jajan",
             port=3306
         )
